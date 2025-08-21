@@ -91,6 +91,18 @@ typedef enum _meshtastic_KeyVerificationAdmin_MessageType {
 } meshtastic_KeyVerificationAdmin_MessageType;
 
 /* Struct definitions */
+/* Input event message to be sent to the node. */
+typedef struct _meshtastic_AdminMessage_InputEvent {
+    /* The input event code */
+    uint8_t event_code;
+    /* Keyboard character code */
+    uint8_t kb_char;
+    /* The touch X coordinate */
+    uint16_t touch_x;
+    /* The touch Y coordinate */
+    uint16_t touch_y;
+} meshtastic_AdminMessage_InputEvent;
+
 /* Parameters for setting up Meshtastic for ameteur radio usage */
 typedef struct _meshtastic_HamParameters {
     /* Amateur radio call sign, eg. KD2ABC */
@@ -118,6 +130,8 @@ typedef struct _meshtastic_SharedContact {
     /* The User of the contact */
     bool has_user;
     meshtastic_User user;
+    /* Add this contact to the blocked / ignored list */
+    bool should_ignore;
 } meshtastic_SharedContact;
 
 /* This message is used by a client to initiate or complete a key verification */
@@ -192,6 +206,9 @@ typedef struct _meshtastic_AdminMessage {
         meshtastic_AdminMessage_BackupLocation restore_preferences;
         /* Remove backups of the node's preferences */
         meshtastic_AdminMessage_BackupLocation remove_backup_preferences;
+        /* Send an input event to the node.
+     This is used to trigger physical input events like button presses, touch events, etc. */
+        meshtastic_AdminMessage_InputEvent send_input_event;
         /* Set the owner for this node */
         meshtastic_User set_owner;
         /* Set channels (using the new API).
@@ -310,6 +327,10 @@ extern "C" {
             }                                                                                                                    \
         }                                                                                                                        \
     }
+#define meshtastic_AdminMessage_InputEvent_init_default                                                                          \
+    {                                                                                                                            \
+        0, 0, 0, 0                                                                                                               \
+    }
 #define meshtastic_HamParameters_init_default                                                                                    \
     {                                                                                                                            \
         "", 0, 0, ""                                                                                                             \
@@ -330,7 +351,7 @@ extern "C" {
     }
 #define meshtastic_SharedContact_init_default                                                                                    \
     {                                                                                                                            \
-        0, false, meshtastic_User_init_default                                                                                   \
+        0, false, meshtastic_User_init_default, 0                                                                                \
     }
 #define meshtastic_KeyVerificationAdmin_init_default                                                                             \
     {                                                                                                                            \
@@ -345,6 +366,10 @@ extern "C" {
                 0                                                                                                                \
             }                                                                                                                    \
         }                                                                                                                        \
+    }
+#define meshtastic_AdminMessage_InputEvent_init_zero                                                                             \
+    {                                                                                                                            \
+        0, 0, 0, 0                                                                                                               \
     }
 #define meshtastic_HamParameters_init_zero                                                                                       \
     {                                                                                                                            \
@@ -366,7 +391,7 @@ extern "C" {
     }
 #define meshtastic_SharedContact_init_zero                                                                                       \
     {                                                                                                                            \
-        0, false, meshtastic_User_init_zero                                                                                      \
+        0, false, meshtastic_User_init_zero, 0                                                                                   \
     }
 #define meshtastic_KeyVerificationAdmin_init_zero                                                                                \
     {                                                                                                                            \
@@ -374,6 +399,10 @@ extern "C" {
     }
 
 /* Field tags (for use in manual encoding/decoding) */
+#define meshtastic_AdminMessage_InputEvent_event_code_tag 1
+#define meshtastic_AdminMessage_InputEvent_kb_char_tag 2
+#define meshtastic_AdminMessage_InputEvent_touch_x_tag 3
+#define meshtastic_AdminMessage_InputEvent_touch_y_tag 4
 #define meshtastic_HamParameters_call_sign_tag 1
 #define meshtastic_HamParameters_tx_power_tag 2
 #define meshtastic_HamParameters_frequency_tag 3
@@ -381,6 +410,7 @@ extern "C" {
 #define meshtastic_NodeRemoteHardwarePinsResponse_node_remote_hardware_pins_tag 1
 #define meshtastic_SharedContact_node_num_tag 1
 #define meshtastic_SharedContact_user_tag 2
+#define meshtastic_SharedContact_should_ignore_tag 3
 #define meshtastic_KeyVerificationAdmin_message_type_tag 1
 #define meshtastic_KeyVerificationAdmin_remote_nodenum_tag 2
 #define meshtastic_KeyVerificationAdmin_nonce_tag 3
@@ -410,6 +440,7 @@ extern "C" {
 #define meshtastic_AdminMessage_backup_preferences_tag 24
 #define meshtastic_AdminMessage_restore_preferences_tag 25
 #define meshtastic_AdminMessage_remove_backup_preferences_tag 26
+#define meshtastic_AdminMessage_send_input_event_tag 27
 #define meshtastic_AdminMessage_set_owner_tag 32
 #define meshtastic_AdminMessage_set_channel_tag 33
 #define meshtastic_AdminMessage_set_config_tag 34
@@ -472,6 +503,7 @@ extern "C" {
     X(a, STATIC, ONEOF, UENUM, (payload_variant, backup_preferences, backup_preferences), 24)                                    \
     X(a, STATIC, ONEOF, UENUM, (payload_variant, restore_preferences, restore_preferences), 25)                                  \
     X(a, STATIC, ONEOF, UENUM, (payload_variant, remove_backup_preferences, remove_backup_preferences), 26)                      \
+    X(a, STATIC, ONEOF, MESSAGE, (payload_variant, send_input_event, send_input_event), 27)                                      \
     X(a, STATIC, ONEOF, MESSAGE, (payload_variant, set_owner, set_owner), 32)                                                    \
     X(a, STATIC, ONEOF, MESSAGE, (payload_variant, set_channel, set_channel), 33)                                                \
     X(a, STATIC, ONEOF, MESSAGE, (payload_variant, set_config, set_config), 34)                                                  \
@@ -512,6 +544,7 @@ extern "C" {
 #define meshtastic_AdminMessage_payload_variant_set_ham_mode_MSGTYPE meshtastic_HamParameters
 #define meshtastic_AdminMessage_payload_variant_get_node_remote_hardware_pins_response_MSGTYPE                                   \
     meshtastic_NodeRemoteHardwarePinsResponse
+#define meshtastic_AdminMessage_payload_variant_send_input_event_MSGTYPE meshtastic_AdminMessage_InputEvent
 #define meshtastic_AdminMessage_payload_variant_set_owner_MSGTYPE meshtastic_User
 #define meshtastic_AdminMessage_payload_variant_set_channel_MSGTYPE meshtastic_Channel
 #define meshtastic_AdminMessage_payload_variant_set_config_MSGTYPE meshtastic_Config
@@ -521,6 +554,14 @@ extern "C" {
 #define meshtastic_AdminMessage_payload_variant_store_ui_config_MSGTYPE meshtastic_DeviceUIConfig
 #define meshtastic_AdminMessage_payload_variant_add_contact_MSGTYPE meshtastic_SharedContact
 #define meshtastic_AdminMessage_payload_variant_key_verification_MSGTYPE meshtastic_KeyVerificationAdmin
+
+#define meshtastic_AdminMessage_InputEvent_FIELDLIST(X, a)                                                                       \
+    X(a, STATIC, SINGULAR, UINT32, event_code, 1)                                                                                \
+    X(a, STATIC, SINGULAR, UINT32, kb_char, 2)                                                                                   \
+    X(a, STATIC, SINGULAR, UINT32, touch_x, 3)                                                                                   \
+    X(a, STATIC, SINGULAR, UINT32, touch_y, 4)
+#define meshtastic_AdminMessage_InputEvent_CALLBACK NULL
+#define meshtastic_AdminMessage_InputEvent_DEFAULT NULL
 
 #define meshtastic_HamParameters_FIELDLIST(X, a)                                                                                 \
     X(a, STATIC, SINGULAR, STRING, call_sign, 1)                                                                                 \
@@ -537,7 +578,8 @@ extern "C" {
 
 #define meshtastic_SharedContact_FIELDLIST(X, a)                                                                                 \
     X(a, STATIC, SINGULAR, UINT32, node_num, 1)                                                                                  \
-    X(a, STATIC, OPTIONAL, MESSAGE, user, 2)
+    X(a, STATIC, OPTIONAL, MESSAGE, user, 2)                                                                                     \
+    X(a, STATIC, SINGULAR, BOOL, should_ignore, 3)
 #define meshtastic_SharedContact_CALLBACK NULL
 #define meshtastic_SharedContact_DEFAULT NULL
 #define meshtastic_SharedContact_user_MSGTYPE meshtastic_User
@@ -551,6 +593,7 @@ extern "C" {
 #define meshtastic_KeyVerificationAdmin_DEFAULT NULL
 
 extern const pb_msgdesc_t meshtastic_AdminMessage_msg;
+extern const pb_msgdesc_t meshtastic_AdminMessage_InputEvent_msg;
 extern const pb_msgdesc_t meshtastic_HamParameters_msg;
 extern const pb_msgdesc_t meshtastic_NodeRemoteHardwarePinsResponse_msg;
 extern const pb_msgdesc_t meshtastic_SharedContact_msg;
@@ -558,6 +601,7 @@ extern const pb_msgdesc_t meshtastic_KeyVerificationAdmin_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define meshtastic_AdminMessage_fields &meshtastic_AdminMessage_msg
+#define meshtastic_AdminMessage_InputEvent_fields &meshtastic_AdminMessage_InputEvent_msg
 #define meshtastic_HamParameters_fields &meshtastic_HamParameters_msg
 #define meshtastic_NodeRemoteHardwarePinsResponse_fields &meshtastic_NodeRemoteHardwarePinsResponse_msg
 #define meshtastic_SharedContact_fields &meshtastic_SharedContact_msg
@@ -565,11 +609,12 @@ extern const pb_msgdesc_t meshtastic_KeyVerificationAdmin_msg;
 
 /* Maximum encoded size of messages (where known) */
 #define MESHTASTIC_MESHTASTIC_ADMIN_PB_H_MAX_SIZE meshtastic_AdminMessage_size
+#define meshtastic_AdminMessage_InputEvent_size 14
 #define meshtastic_AdminMessage_size 511
 #define meshtastic_HamParameters_size 31
 #define meshtastic_KeyVerificationAdmin_size 25
 #define meshtastic_NodeRemoteHardwarePinsResponse_size 496
-#define meshtastic_SharedContact_size 123
+#define meshtastic_SharedContact_size 125
 
 #ifdef __cplusplus
 } /* extern "C" */
