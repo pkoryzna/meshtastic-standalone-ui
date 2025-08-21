@@ -83,16 +83,20 @@ void setup()
     logger.setDebugLevel(ESP_LOG_NONE); // do not log when connected over serial0
 #endif
 
+    ILOG_INFO("\n//\\ E S H T /\\ S T / C   U I  -  %s\n", firmware_version);
 #ifdef I2C_SDA
     if (!Wire.begin(I2C_SDA, I2C_SCL, 400000))
         ILOG_ERROR("*** Failed to access I2C0(%d, %d)", I2C_SDA, I2C_SCL);
+#else
+    ILOG_DEBUG("I2C-0 not configured");
 #endif
 #ifdef I2C_SDA1
     if (!Wire.begin(I2C_SDA1, I2C_SCL1, 400000))
         ILOG_ERROR("*** Failed to access I2C1(%d, %d)", I2C_SDA1, I2C_SCL1);
+#else
+    ILOG_DEBUG("I2C-1 not configured");
 #endif
 
-    ILOG_INFO("\n//\\ E S H T /\\ S T / C   U I\n");
 #ifdef ARDUINO_ARCH_ESP32
     uint64_t chipid;
     chipid = ESP.getEfuseMac(); // The chip ID is essentially its MAC address(length: 6 bytes).
