@@ -131,6 +131,9 @@ void setup()
     if (y < 240 || y > 800)
         y = 480;
     screen = &DeviceScreen::create(DisplayDriverConfig(DisplayDriverConfig::device_t::X11, x, y));
+#elif defined(USE_ESP_LCD_WHY2025)
+    client = new UARTClient();
+    screen = &DeviceScreen::create(DisplayDriverConfig(DisplayDriverConfig::device_t::WHY2025_M2, 720, 720));
 #else
     client = new UARTClient();
     screen = &DeviceScreen::create();
