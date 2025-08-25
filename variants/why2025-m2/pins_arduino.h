@@ -10,8 +10,8 @@
 static const uint8_t TX = 37;
 static const uint8_t RX = 38;
 
-static const uint8_t SDA = 7;
-static const uint8_t SCL = 8;
+static const uint8_t SDA = 18;
+static const uint8_t SCL = 20;
 
 // Use GPIOs 36 or lower on the P4 DevKit to avoid LDO power issues with high numbered GPIOs.
 static const uint8_t SS = 26;
