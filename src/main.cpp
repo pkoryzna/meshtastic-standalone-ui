@@ -20,7 +20,9 @@
 #endif
 
 // this is pulled in by the device-ui library
-const char *firmware_version = "2.7.6";
+extern const uint8_t fw_version_start[] asm("_binary_meshtastic_fw_version_start");
+
+const char *firmware_version = (char*)fw_version_start;
 
 #ifdef USE_DUMMY_SERIAL
 class DummyClient : public IClientBase
